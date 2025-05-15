@@ -9,6 +9,7 @@ import { UserDto } from './dtos/User.dto';
 import { UserAlreadyExistsException } from './exceptions/UserAlreadyExists.exception';
 import { CommonService } from '@app/common';
 import { InvalidIdParamException } from './exceptions/InvalidIdParam.excetpion';
+import { PaginationQueryDto } from './dtos/PaginationQuery.dto';
 
 type UserDocument = Document<unknown, {}, User, {}> &
   User & {
@@ -16,6 +17,14 @@ type UserDocument = Document<unknown, {}, User, {}> &
   } & {
     __v: number;
   };
+
+type PaginationMetadata = {
+  total: number;
+  page: number;
+  limit: number;
+  pageCount: number;
+  hasNextPage: boolean;
+};
 @Injectable()
 export class UsersService {
   constructor(
@@ -58,6 +67,32 @@ export class UsersService {
     }
 
     return this.userDocToDto(userDoc);
+  }
+
+  async getUsers(
+    pagination: PaginationQueryDto,
+  ): Promise<{ data: UserDto[]; meta: PaginationMetadata }> {
+    const { page, limit } = pagination;
+    const skip = (page - 1) * limit;
+
+    const [users, total] = await Promise.all([
+      this.userModel.find().skip(skip).limit(limit).exec(),
+      this.userModel.countDocuments(),
+    ]);
+
+    const pageCount = Math.ceil(total / limit);
+    const hasNextPage = page < pageCount;
+
+    return {
+      data: users.map((user) => this.userDocToDto(user)),
+      meta: {
+        total,
+        page,
+        limit,
+        pageCount,
+        hasNextPage,
+      },
+    };
   }
 
   async deleteUser(userId: string): Promise<UserDto | null> {

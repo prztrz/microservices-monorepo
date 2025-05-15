@@ -9,21 +9,25 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseFilters,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dtos/CreateUser.dto';
 import { isNil } from 'lodash-es';
 import { UserExceptionFilter } from './filters/UserException.filter';
+import { PaginationQueryDto } from './dtos/PaginationQuery.dto';
 
 @UseFilters(UserExceptionFilter)
 @Controller()
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get('/ping')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  healthCheck() {}
+  @Get('/')
+  @HttpCode(HttpStatus.OK)
+  async getUsers(@Query() pagination: PaginationQueryDto) {
+    return this.usersService.getUsers(pagination);
+  }
 
   @Get('/:id')
   @HttpCode(HttpStatus.OK)
@@ -62,4 +66,8 @@ export class UsersController {
   async createUser(@Body() input: CreateUserDto) {
     return this.usersService.createUser(input);
   }
+
+  @Get('/ping')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  healthCheck() {}
 }

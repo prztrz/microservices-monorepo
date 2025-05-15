@@ -2,12 +2,17 @@ import { NestFactory } from '@nestjs/core';
 import { UsersModule } from './users.module';
 import { config } from 'dotenv';
 import { join } from 'path';
-import { ValidationPipe } from '@nestjs/common';
+import { ConsoleLogger, ValidationPipe } from '@nestjs/common';
 
 config({ path: join(__dirname, '../../../.env') });
 
 async function bootstrap() {
-  const app = await NestFactory.create(UsersModule);
+  const app = await NestFactory.create(UsersModule, {
+    logger: new ConsoleLogger({
+      prefix: 'users',
+      logLevels: ['verbose', 'debug', 'log', 'warn', 'error', 'fatal'],
+    }),
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,

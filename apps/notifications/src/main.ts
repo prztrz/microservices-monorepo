@@ -3,7 +3,7 @@ import { NotificationsModule } from './notifications.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { config } from 'dotenv';
 import { join } from 'path';
-import { ValidationPipe } from '@nestjs/common';
+import { ConsoleLogger, ValidationPipe } from '@nestjs/common';
 
 config({ path: join(__dirname, '../../../.env') });
 
@@ -19,6 +19,10 @@ async function bootstrap() {
           durable: true,
         },
       },
+      logger: new ConsoleLogger({
+        prefix: 'notifications',
+        logLevels: ['verbose', 'debug', 'log', 'warn', 'error', 'fatal'],
+      }),
     },
   );
   app.useGlobalPipes(

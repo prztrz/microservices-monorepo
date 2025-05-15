@@ -18,6 +18,9 @@ import { MSG_BROKER_SERVICE_NAME } from './config/msgBrokerConfig';
         options: {
           queue: process.env.USERS_QUEUE_NAME,
           urls: [process.env.MSG_BROKER_URL],
+          queueOptions: {
+            durable: true,
+          },
         },
       },
     ]),

@@ -7,7 +7,11 @@ import { isNil, omit } from 'lodash-es';
 import { plainToInstance } from 'class-transformer';
 import { UserDto } from './dtos/User.dto';
 import { UserAlreadyExistsException } from './exceptions/UserAlreadyExists.exception';
-import { CommonService } from '@app/common';
+import {
+  CommonService,
+  USER_CREATED_PATTERN,
+  USER_DELETED_PATTERN,
+} from '@app/common';
 import { InvalidIdParamException } from './exceptions/InvalidIdParam.excetpion';
 import { PaginationQueryDto } from './dtos/PaginationQuery.dto';
 import { MSG_BROKER_SERVICE_NAME } from './config/msgBrokerConfig';
@@ -56,11 +60,10 @@ export class UsersService {
     await newUser.save();
 
     const newUserDto = this.userDocToDto(newUser);
-    await this.msgBroker.connect();
 
-    this.msgBroker
-      .emit(...this.commonService.createUserCreatedEventTuple(newUserDto))
-      .subscribe();
+    this.msgBroker.emit<typeof USER_CREATED_PATTERN, UserDto>(
+      ...this.commonService.createUserCreatedEventTuple(newUserDto),
+    );
 
     return newUserDto;
   }
@@ -112,11 +115,16 @@ export class UsersService {
     }
 
     await this.userModel.findByIdAndDelete(userId).exec();
+
+    this.msgBroker.emit<typeof USER_DELETED_PATTERN, UserDto>(
+      ...this.commonService.createUserDeletedEventTuple(user),
+    );
+
     return user;
   }
 
   async onModuleInit() {
-    await this.msgBroker.connect().catch(() => 'cannot connect');
+    await this.msgBroker.connect();
   }
 
   async updateUser(

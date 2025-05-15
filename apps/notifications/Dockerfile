@@ -10,8 +10,8 @@ RUN pnpm install
 
 COPY . .
 
-RUN pnpm build:users
+RUN pnpm build:notifications
 
-WORKDIR /app/dist/apps/users
+WORKDIR /app/dist/apps/notifications
 
 CMD ["node", "main"]

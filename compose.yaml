@@ -5,11 +5,24 @@ services:
     build:
       context: .
       dockerfile: apps/users/Dockerfile
+    command: sh -c "until nc -z msgBroker 5672; do echo 'Waiting for RabbitMQ...'; sleep 2; done && node main"
     env_file: .env
     volumes:
       - ./src:/app/apps/src
     ports:
       - ${USERS_PORT}:${USERS_PORT}
+    depends_on:
+      - db
+      - msgBroker
+  
+  notifications:
+    build:
+      context: .
+      dockerfile: apps/notifications/Dockerfile
+    command: sh -c "until nc -z msgBroker 5672; do echo 'Waiting for RabbitMQ...'; sleep 2; done && node main"
+    env_file: .env
+    volumes:
+      - ./src:/app/apps/src
     depends_on:
       - db
       - msgBroker

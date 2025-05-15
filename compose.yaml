@@ -10,8 +10,17 @@ services:
       - ./src:/app/apps/src
     ports:
       - ${USERS_PORT}:${USERS_PORT}
+    depends_on:
+      - db
+      - msgBroker
   db:
     image: mongo:latest
     env_file: .env
     ports:
       - ${DB_PORT}:${DB_PORT}
+  msgBroker:
+    image: rabbitmq:4-management-alpine
+    env_file: .env
+    ports:
+      - ${MSG_BROKER_PORT}:${MSG_BROKER_PORT}
+      - 15672:15672

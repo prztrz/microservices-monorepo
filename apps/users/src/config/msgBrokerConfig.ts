@@ -1,0 +1,1 @@
+export const MSG_BROKER_SERVICE_NAME = 'MSG_BROKER_SERVICE' as const;

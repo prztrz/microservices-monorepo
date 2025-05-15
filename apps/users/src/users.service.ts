@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schemas/User.schema';
 import { Document, Model, Types } from 'mongoose';
@@ -10,6 +10,8 @@ import { UserAlreadyExistsException } from './exceptions/UserAlreadyExists.excep
 import { CommonService } from '@app/common';
 import { InvalidIdParamException } from './exceptions/InvalidIdParam.excetpion';
 import { PaginationQueryDto } from './dtos/PaginationQuery.dto';
+import { MSG_BROKER_SERVICE_NAME } from './config/msgBrokerConfig';
+import { ClientProxy } from '@nestjs/microservices';
 
 type UserDocument = Document<unknown, {}, User, {}> &
   User & {
@@ -30,6 +32,7 @@ export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     private readonly commonService: CommonService,
+    @Inject(MSG_BROKER_SERVICE_NAME) private msgBroker: ClientProxy,
   ) {}
 
   private async getUserByEmail(email: string): Promise<User | null> {
@@ -52,7 +55,14 @@ export class UsersService {
     const newUser = new this.userModel(input);
     await newUser.save();
 
-    return this.userDocToDto(newUser);
+    const newUserDto = this.userDocToDto(newUser);
+    await this.msgBroker.connect();
+
+    this.msgBroker
+      .emit(...this.commonService.createUserCreatedEventTuple(newUserDto))
+      .subscribe();
+
+    return newUserDto;
   }
 
   async getUser(userId: string): Promise<UserDto | null> {
@@ -103,6 +113,10 @@ export class UsersService {
 
     await this.userModel.findByIdAndDelete(userId).exec();
     return user;
+  }
+
+  async onModuleInit() {
+    await this.msgBroker.connect().catch(() => 'cannot connect');
   }
 
   async updateUser(

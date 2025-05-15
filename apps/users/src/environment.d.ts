@@ -4,6 +4,8 @@ declare global {
       USERS_PORT: string;
       DB_PORT: string;
       DB_URL: string;
+      USERS_QUEUE_NAME: string;
+      MSG_BROKER_URL: string;
     }
   }
 }

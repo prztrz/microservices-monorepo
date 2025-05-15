@@ -5,44 +5,61 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  NotFoundException,
   Param,
   Post,
   Put,
+  UseFilters,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dtos/CreateUser.dto';
+import { isNil } from 'lodash-es';
+import { UserExceptionFilter } from './filters/UserException.filter';
 
+@UseFilters(UserExceptionFilter)
 @Controller()
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get('/')
+  @Get('/ping')
   @HttpCode(HttpStatus.NO_CONTENT)
-  healthCheck(): string {
-    return this.usersService.healthCheck();
-  }
+  healthCheck() {}
 
   @Get('/:id')
   @HttpCode(HttpStatus.OK)
-  getUser(@Param('id') id: string) {
-    console.log('id', id);
+  async getUser(@Param('id') id: string) {
+    const user = await this.usersService.getUser(id);
+
+    if (isNil(user)) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
   }
 
   @Put('/:id')
   @HttpCode(HttpStatus.OK)
-  updateUser(@Param('id') id: string) {
-    console.log('id', id);
+  async updateUser(@Param('id') id: string, @Body() input: CreateUserDto) {
+    const updatedUser = await this.usersService.updateUser(id, input);
+    if (isNil(updatedUser)) {
+      throw new NotFoundException('User not found');
+    }
+
+    return updatedUser;
   }
 
   @Delete('/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  deleteUser(@Param('id') id: string) {
-    console.log('id', id);
+  async deleteUser(@Param('id') id: string) {
+    const deletedUser = await this.usersService.deleteUser(id);
+    if (isNil(deletedUser)) {
+      throw new NotFoundException('User not found');
+    }
   }
 
   @Post('/')
   @HttpCode(HttpStatus.CREATED)
-  createUser(@Body() input: CreateUserDto) {
-    return 'User created';
+  async createUser(@Body() input: CreateUserDto) {
+    return this.usersService.createUser(input);
   }
 }

@@ -1,13 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { isNil } from 'lodash-es';
 
 @Injectable()
 export class CommonService {
-  getDefined<T>(item: T | undefined | null): T {
-    if (isNil(item)) {
-      throw new Error('Item is undefined');
-    }
+  constructor() {}
 
-    return item;
-  }
+  isValid24Hex = (str: string): boolean => /^[a-f0-9]{24}$/i.test(str);
 }

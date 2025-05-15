@@ -24,7 +24,6 @@ services:
     volumes:
       - ./src:/app/apps/src
     depends_on:
-      - db
       - msgBroker
   db:
     image: mongo:latest

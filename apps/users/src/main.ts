@@ -3,6 +3,7 @@ import { UsersModule } from './users.module';
 import { config } from 'dotenv';
 import { join } from 'path';
 import { ConsoleLogger, ValidationPipe } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 config({ path: join(__dirname, '../../../.env') });
 
@@ -21,6 +22,15 @@ async function bootstrap() {
       forbidUnknownValues: true,
     }),
   );
+
+  const config = new DocumentBuilder()
+    .setTitle('Users API')
+    .setVersion('1.0')
+    .build();
+
+  const documentFactory = () => SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, documentFactory);
+
   await app.listen(process.env.USERS_PORT);
 }
 bootstrap();

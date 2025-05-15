@@ -20,7 +20,7 @@ import { PaginationQueryDto } from './dtos/PaginationQuery.dto';
 import { UserNotFoundException } from './exceptions/UserNotFound.exception';
 
 @UseFilters(UserExceptionFilter)
-@Controller()
+@Controller('/users')
 export class UsersController {
   private logger = new Logger(UsersController.name);
   constructor(private readonly usersService: UsersService) {}

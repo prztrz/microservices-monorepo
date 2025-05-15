@@ -5,7 +5,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  NotFoundException,
   Param,
   Post,
   Put,
@@ -17,6 +16,7 @@ import { CreateUserDto } from './dtos/CreateUser.dto';
 import { isNil } from 'lodash-es';
 import { UserExceptionFilter } from './filters/UserException.filter';
 import { PaginationQueryDto } from './dtos/PaginationQuery.dto';
+import { UserNotFoundException } from './exceptions/UserNotFound.exception';
 
 @UseFilters(UserExceptionFilter)
 @Controller()
@@ -29,13 +29,17 @@ export class UsersController {
     return this.usersService.getUsers(pagination);
   }
 
+  @Get('/ping')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  healthCheck() {}
+
   @Get('/:id')
   @HttpCode(HttpStatus.OK)
   async getUser(@Param('id') id: string) {
     const user = await this.usersService.getUser(id);
 
     if (isNil(user)) {
-      throw new NotFoundException('User not found');
+      throw new UserNotFoundException();
     }
 
     return user;
@@ -46,7 +50,7 @@ export class UsersController {
   async updateUser(@Param('id') id: string, @Body() input: CreateUserDto) {
     const updatedUser = await this.usersService.updateUser(id, input);
     if (isNil(updatedUser)) {
-      throw new NotFoundException('User not found');
+      throw new UserNotFoundException();
     }
 
     return updatedUser;
@@ -57,7 +61,7 @@ export class UsersController {
   async deleteUser(@Param('id') id: string) {
     const deletedUser = await this.usersService.deleteUser(id);
     if (isNil(deletedUser)) {
-      throw new NotFoundException('User not found');
+      throw new UserNotFoundException();
     }
   }
 
@@ -66,8 +70,4 @@ export class UsersController {
   async createUser(@Body() input: CreateUserDto) {
     return this.usersService.createUser(input);
   }
-
-  @Get('/ping')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  healthCheck() {}
 }

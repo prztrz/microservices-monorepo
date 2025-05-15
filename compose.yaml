@@ -10,3 +10,8 @@ services:
       - ./src:/app/apps/src
     ports:
       - ${USERS_PORT}:${USERS_PORT}
+  db:
+    image: mongo:latest
+    env_file: .env
+    ports:
+      - ${DB_PORT}:${DB_PORT}
